@@ -1,0 +1,748 @@
+/* ============================================================
+   WUL ケアクエスト — グローバルスタイル
+   方針: 親しみやすい王道RPG × 高視認性（大きめタップ・高コントラスト・大きめ文字）
+   縦画面(ポートレート)前提。幅広い年齢層が迷わない設計。
+   ============================================================ */
+
+:root {
+  --bg: #0e1526;
+  --bg2: #16203a;
+  --panel: #fbf6ea;
+  --panel-2: #fffdf7;
+  --panel-line: #e7dabf;
+  --ink: #26313f;
+  --ink-soft: #64748b;
+  --gold: #f2b544;
+  --gold-deep: #c98a1e;
+  --primary: #2f81f7;
+  --primary-deep: #1f5fd0;
+  --danger: #e5484d;
+  --good: #2fa96b;
+  --care: #e8734a;
+  --it: #2f81f7;
+  --mgmt: #3aa76d;
+  --hp: #46c66a;
+  --hp-low: #e5484d;
+  --xp: #f2b544;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --tap: 52px;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  --shadow-sm: 0 3px 10px rgba(0, 0, 0, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  /* ページ全体はスクロールさせない。スクロールするのは .screen の内側だけ。
+     こうしないと下タブが画面外へ流れていく。 */
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: 'Hiragino Maru Gothic ProN', 'Hiragino Kaku Gothic ProN',
+    'Rounded Mplus 1c', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--ink);
+  background: #0a1020;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+  user-select: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* ---- アプリ外枠：デスクトップでは縦画面フレーム、モバイルでは全画面 ---- */
+.app-root {
+  height: 100dvh;
+  display: flex;
+  justify-content: center;
+  background: radial-gradient(120% 120% at 50% 0%, #1c2740, #0a1020 70%);
+}
+
+.game-frame {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  /* min-height ではなく height。中身が増えてもフレーム自体は伸びず、
+     .screen の内側だけがスクロールする（＝タブバーが押し下げられない） */
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+}
+
+/* ---- 画面共通 ---- */
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  gap: 14px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.screen--with-tab {
+  padding-bottom: calc(86px + env(safe-area-inset-bottom));
+}
+
+/* ---- トップバー ---- */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: env(safe-area-inset-top);
+  color: #fff;
+}
+.topbar__title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.topbar__spacer {
+  flex: 1;
+}
+.iconbtn {
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.iconbtn:active {
+  transform: scale(0.94);
+}
+
+/* ---- パネル（クリーム地のカード） ---- */
+.panel {
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 2px solid var(--panel-line);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.panel--flush {
+  padding: 12px;
+}
+
+/* ---- テキスト ---- */
+.h1 {
+  font-size: 1.5rem;
+  font-weight: 900;
+  margin: 0;
+}
+.h2 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0;
+}
+.muted {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.center {
+  text-align: center;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.stack--sm {
+  gap: 8px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.grow {
+  flex: 1;
+}
+.wrap {
+  flex-wrap: wrap;
+}
+
+/* ---- ボタン ---- */
+.btn {
+  min-height: var(--tap);
+  padding: 0 20px;
+  border: none;
+  border-radius: 14px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.06s ease, filter 0.15s ease;
+  box-shadow: var(--shadow-sm);
+  color: #fff;
+  background: var(--primary);
+}
+.btn:active {
+  transform: translateY(2px) scale(0.99);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.btn--block {
+  width: 100%;
+}
+.btn--lg {
+  min-height: 60px;
+  font-size: 1.15rem;
+}
+.btn--primary {
+  background: linear-gradient(180deg, var(--primary), var(--primary-deep));
+}
+.btn--gold {
+  background: linear-gradient(180deg, var(--gold), var(--gold-deep));
+  color: #4a2f00;
+}
+.btn--secondary {
+  background: #eef2f7;
+  color: var(--ink);
+  border: 2px solid #d6dee8;
+  box-shadow: none;
+}
+.btn--danger {
+  background: linear-gradient(180deg, #f26a6e, var(--danger));
+}
+.btn--ghost {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  box-shadow: none;
+}
+
+/* ---- HP / XP バー ---- */
+.bar {
+  --c: var(--hp);
+}
+.bar__label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--ink);
+}
+.bar__track {
+  height: 16px;
+  background: #dfe6ee;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+.bar__fill {
+  height: 100%;
+  background: var(--c);
+  border-radius: 999px;
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.bar--onDark .bar__label {
+  color: #fff;
+}
+
+/* ---- ピル / バッジ ---- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+.pill--light {
+  background: #f0ead9;
+  color: var(--gold-deep);
+}
+.badge {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+/* ---- レア度の星 ---- */
+.stars {
+  color: var(--gold);
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+}
+.rarity-5 {
+  color: #ff6ec7;
+}
+.rarity-4 {
+  color: #b061ff;
+}
+.rarity-3 {
+  color: #3ea6ff;
+}
+
+/* ---- 下部タブバー ---- */
+.tabbar {
+  /* ビューポート基準で固定。スクロール位置やフレームの高さに関係なく、常に画面の下端に貼り付く。 */
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  z-index: 50;
+  display: flex;
+  background: rgba(15, 22, 40, 0.96);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-item {
+  flex: 1;
+  min-width: 0; /* タブが増えても はみ出さずに詰める */
+  min-height: 62px;
+  padding: 0 2px;
+  border: none;
+  background: transparent;
+  color: #8b98ad;
+  font-size: 0.62rem;
+  font-weight: 700;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+}
+.tab-item .tab-ico {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+.tab-item.active {
+  color: var(--gold);
+}
+.tab-item.active .tab-ico {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 3px 6px rgba(242, 181, 68, 0.5));
+}
+.tab-badge {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- 研修ガチャ ---- */
+.gacha-orb {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 74px;
+  background: radial-gradient(circle at 35% 30%, #fff6e0, #f2b544 60%, #c98a1e);
+  box-shadow: inset 0 -10px 20px rgba(0, 0, 0, 0.15), 0 10px 24px rgba(201, 138, 30, 0.35);
+}
+.gacha-orb.rolling {
+  animation: gachaShake 0.5s ease-in-out infinite;
+}
+/* SSR以上は虹色に輝かせる */
+.gacha-orb--rare {
+  background: conic-gradient(from 0deg, #ff6ec7, #ffd166, #6ee7ff, #b061ff, #ff6ec7);
+  animation: rainbowSpin 3s linear infinite;
+  box-shadow: 0 0 30px rgba(255, 110, 199, 0.6), 0 10px 24px rgba(0, 0, 0, 0.3);
+}
+@keyframes rainbowSpin {
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
+
+/* ---- レアリティのランク表記（N / R / SR / SSR / UR） ---- */
+.rank-badge {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+.rank-1 {
+  background: #94a3b8;
+}
+.rank-2 {
+  background: #3ea6ff;
+}
+.rank-3 {
+  background: #2f81f7;
+}
+.rank-4 {
+  background: linear-gradient(90deg, #b061ff, #7c3aed);
+}
+.rank-5 {
+  background: linear-gradient(90deg, #ff6ec7, #ffd166, #6ee7ff);
+  color: #3a2a00;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+@keyframes gachaShake {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-7deg) scale(1.03);
+  }
+  75% {
+    transform: rotate(7deg) scale(1.03);
+  }
+}
+.charm-row {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 12px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.charm-row:disabled {
+  cursor: default;
+}
+
+/* ---- スプライト（絵文字プレースホルダー） ---- */
+.sprite {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
+}
+.sprite--enemy {
+  font-size: 92px;
+}
+.sprite--hero {
+  font-size: 64px;
+}
+
+/* 生成画像のスプライト */
+.sprite-img {
+  object-fit: contain;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
+  user-select: none;
+}
+
+.enemy-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 230px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background-size: cover;
+  background-position: center 35%;
+}
+/* 背景画の上でも敵とHPバーが読めるように、下側を暗く落とす */
+.enemy-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.35));
+  pointer-events: none;
+}
+.enemy-stage > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* フロア背景を敷くカード */
+.floor-card {
+  background-size: cover;
+  background-position: center;
+}
+.floor-card__body {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(2px);
+  padding: 8px 10px;
+}
+.enemy-stage__ground {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 46px;
+  background: rgba(0, 0, 0, 0.16);
+  border-radius: 50%;
+  filter: blur(6px);
+  margin: 0 40px 18px;
+}
+
+/* ---- クイズ選択肢 ---- */
+.choice {
+  width: 100%;
+  min-height: 60px;
+  text-align: left;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 2px solid #d6dee8;
+  background: var(--panel-2);
+  color: var(--ink);
+  font-size: 1.02rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: transform 0.06s ease;
+}
+.choice:active {
+  transform: scale(0.99);
+}
+.choice__mark {
+  min-width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #eef2f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  color: var(--ink-soft);
+}
+.choice.correct {
+  border-color: var(--good);
+  background: #e7f7ee;
+}
+.choice.correct .choice__mark {
+  background: var(--good);
+  color: #fff;
+}
+.choice.wrong {
+  border-color: var(--danger);
+  background: #fdeaea;
+}
+.choice.wrong .choice__mark {
+  background: var(--danger);
+  color: #fff;
+}
+.choice.dim {
+  opacity: 0.55;
+}
+
+/* ---- タイトル画面 ---- */
+.title-screen {
+  background-color: #0e1526;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+}
+
+/* ---- ゲームロゴ ---- */
+.logo-wrap {
+  margin: 0;
+  animation: logoIn 0.7s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+@keyframes logoIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.72) translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* ゆっくり息づかせて「動いているゲーム画面」に見せる */
+.logo {
+  animation: logoBreathe 4.5s ease-in-out infinite;
+}
+@keyframes logoBreathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.025);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .logo,
+  .logo-wrap {
+    animation: none;
+  }
+}
+
+/* ---- フロアカード ---- */
+.floor-card {
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  border: 2px solid rgba(0, 0, 0, 0.06);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+.floor-card.locked {
+  filter: grayscale(0.7) brightness(0.9);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.floor-card__no {
+  font-size: 0.75rem;
+  font-weight: 800;
+  opacity: 0.7;
+}
+
+/* ---- 汎用 ---- */
+.divider {
+  height: 1px;
+  background: var(--panel-line);
+  margin: 4px 0;
+}
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: #eef2f7;
+  color: var(--ink-soft);
+}
+.kv {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--panel-line);
+  font-size: 0.95rem;
+}
+.kv b {
+  font-weight: 800;
+}
+
+/* ---- アニメーション ---- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-in {
+  animation: fadeIn 0.28s ease both;
+}
+@keyframes pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.pop {
+  animation: pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(8px);
+  }
+  60% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+}
+.shake {
+  animation: shake 0.4s ease;
+}
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.floaty {
+  animation: floaty 2.6s ease-in-out infinite;
+}
+@keyframes dmgFloat {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1.2);
+  }
+  100% {
+    transform: translateY(-60px) scale(1);
+    opacity: 0;
+  }
+}
+.dmg-float {
+  position: absolute;
+  top: 40px;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 2px 0 #000, 0 0 12px rgba(0, 0, 0, 0.6);
+  animation: dmgFloat 0.9s ease forwards;
+  pointer-events: none;
+}
+.dmg-float.special {
+  color: var(--gold);
+  font-size: 2.4rem;
+}
+
+/* スクロールバー控えめ */
+.screen::-webkit-scrollbar {
+  width: 0;
+}
