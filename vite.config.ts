@@ -7,7 +7,9 @@ import { fileURLToPath, URL } from 'node:url'
 // ビルド時に base を切り替える。ローカル開発では '/' のまま。
 // アセットの参照は src/data/art.ts が import.meta.env.BASE_URL を見ているので、
 // ここを変えるだけで画像パスも追従する。
-const base = process.env.VITE_BASE ?? '/'
+const base = process.env.GITHUB_ACTIONS === 'true'
+  ? '/wul-care-rpg/'
+  : '/'
 
 export default defineConfig({
   base,
