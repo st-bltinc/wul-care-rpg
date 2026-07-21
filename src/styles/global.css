@@ -39,7 +39,7 @@
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100vh;
   margin: 0;
   /* ページ全体はスクロールさせない。スクロールするのは .screen の内側だけ。
      こうしないと下タブが画面外へ流れていく。 */
@@ -62,12 +62,12 @@ button {
 }
 
 /* ---- アプリ外枠：デスクトップでは縦画面フレーム、モバイルでは全画面 ---- */
-/* iOSのPWA/Safariでは 100dvh が画面下端（ホームバー領域）まで届かず、
-   フレーム下に背景が透けて帯状の空白ができる不具合がある。
-   position:fixed + inset:0 で表示領域全体を確実に覆い、その隙間をなくす。 */
+/* 高さの扱いがブラウザとスタンドアロン(ホーム画面追加)で異なる:
+   - ブラウザ: 100dvh（ツールバーの出入りに追従。これで下タブが流れない）
+   - スタンドアロン: 100dvh はiOSでホームバー領域まで届かず下に黒帯が残るため、
+     画面全体(ホームバー領域含む)を表す 100vh を使う。 */
 .app-root {
-  position: fixed;
-  inset: 0;
+  height: 100dvh;
   display: flex;
   justify-content: center;
   background: radial-gradient(120% 120% at 50% 0%, #1c2740, #0a1020 70%);
@@ -77,14 +77,22 @@ button {
   position: relative;
   width: 100%;
   max-width: 480px;
-  /* 親(app-root)が画面全体を覆っているので、その高さいっぱいに広げる。
-     中身が増えてもフレームは伸びず、.screen の内側だけがスクロールする。 */
-  height: 100%;
+  /* 中身が増えてもフレームは伸びず、.screen の内側だけがスクロールする。 */
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--bg);
   overflow: hidden;
   box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+}
+
+/* スタンドアロン(ホーム画面追加)では 100vh に切り替え、ホームバー領域まで覆って
+   画面下端の黒帯をなくす。ブラウザでは 100dvh のまま（ツールバー追従）。 */
+@media all and (display-mode: standalone) {
+  .app-root,
+  .game-frame {
+    height: 100vh;
+  }
 }
 
 /* ---- 画面共通 ---- */
@@ -325,12 +333,15 @@ button {
   display: flex;
   background: #0f1628;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: 4px;
+  /* ホームバー分の余白は確保しつつ、暗い帯が大きく見えないよう控えめに詰める。
+     セーフエリアが 0 の端末（Androidや古いiPhone）でも 6px は残す。 */
+  padding-bottom: max(6px, calc(env(safe-area-inset-bottom) - 10px));
 }
 .tab-item {
   flex: 1;
   min-width: 0; /* タブが増えても はみ出さずに詰める */
-  min-height: 62px;
+  min-height: 50px;
   padding: 0 2px;
   border: none;
   background: transparent;
