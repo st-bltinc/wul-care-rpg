@@ -62,8 +62,12 @@ button {
 }
 
 /* ---- アプリ外枠：デスクトップでは縦画面フレーム、モバイルでは全画面 ---- */
+/* iOSのPWA/Safariでは 100dvh が画面下端（ホームバー領域）まで届かず、
+   フレーム下に背景が透けて帯状の空白ができる不具合がある。
+   position:fixed + inset:0 で表示領域全体を確実に覆い、その隙間をなくす。 */
 .app-root {
-  height: 100dvh;
+  position: fixed;
+  inset: 0;
   display: flex;
   justify-content: center;
   background: radial-gradient(120% 120% at 50% 0%, #1c2740, #0a1020 70%);
@@ -73,9 +77,9 @@ button {
   position: relative;
   width: 100%;
   max-width: 480px;
-  /* min-height ではなく height。中身が増えてもフレーム自体は伸びず、
-     .screen の内側だけがスクロールする（＝タブバーが押し下げられない） */
-  height: 100dvh;
+  /* 親(app-root)が画面全体を覆っているので、その高さいっぱいに広げる。
+     中身が増えてもフレームは伸びず、.screen の内側だけがスクロールする。 */
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: var(--bg);
