@@ -99,8 +99,10 @@ button {
   -webkit-overflow-scrolling: touch;
 }
 
+/* タブバーは在フロー要素として下に並ぶので、スクロール領域側で余白を確保する必要はない。
+   セーフエリア（ホームバー）はタブバー側の padding-bottom が持つため、ここでは 0 に戻す。 */
 .screen--with-tab {
-  padding-bottom: calc(86px + env(safe-area-inset-bottom));
+  padding-bottom: 14px;
 }
 
 /* ---- トップバー ---- */
@@ -310,18 +312,14 @@ button {
 }
 
 /* ---- 下部タブバー ---- */
+/* フレーム内の通常フロー要素として最下部に置く。position:fixed をやめたことで、
+   モバイルSafari の表示領域とズレて余計な帯が出る問題を回避する。
+   .game-frame が height:100dvh の flex 列なので、.screen が伸びて内側だけスクロールし、
+   タブバーは常に画面の下端（ホームバーのすぐ上）に収まる。 */
 .tabbar {
-  /* ビューポート基準で固定。スクロール位置やフレームの高さに関係なく、常に画面の下端に貼り付く。 */
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 480px;
-  z-index: 50;
+  flex-shrink: 0;
   display: flex;
-  background: rgba(15, 22, 40, 0.96);
-  backdrop-filter: blur(8px);
+  background: #0f1628;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding-bottom: env(safe-area-inset-bottom);
 }
