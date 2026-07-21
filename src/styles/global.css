@@ -572,6 +572,12 @@ button {
   background-position: center top;
   background-repeat: no-repeat;
 }
+/* 上部の可変スペーサー。広い画面では伸びて主人公を見せ、
+   狭い画面では 0 まで縮んでロゴ・ボタンが重ならず収まる。 */
+.title-spacer {
+  flex: 1 1 auto;
+  min-height: 12px;
+}
 
 /* ---- ゲームロゴ ---- */
 .logo-wrap {

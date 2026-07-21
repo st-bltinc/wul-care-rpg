@@ -10,10 +10,10 @@ export function Logo({ width = 320 }: { width?: number }) {
     <svg
       className="logo"
       viewBox="0 0 480 190"
-      width={width}
       role="img"
       aria-label="WUL ケアクエスト"
-      style={{ display: 'block', margin: '0 auto', overflow: 'visible' }}
+      // 幅は「上限」として扱い、狭い画面では 100% に縮む（横はみ出し防止）
+      style={{ display: 'block', margin: '0 auto', overflow: 'visible', width: '100%', maxWidth: width }}
     >
       <defs>
         {/* メインの金色グラデーション */}

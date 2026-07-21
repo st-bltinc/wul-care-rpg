@@ -15,18 +15,21 @@ export function TitleScreen() {
     <div
       className="screen title-screen"
       style={{
-        justifyContent: 'flex-end',
         alignItems: 'stretch',
         // 主人公が潰れないよう、暗くするのは下半分だけにする
         backgroundImage: `linear-gradient(180deg, rgba(14,21,38,0) 42%, rgba(14,21,38,.55) 62%, rgba(14,21,38,.92) 80%, #0e1526), url(${TITLE_ART})`,
-        gap: 18,
+        gap: 16,
       }}
     >
+      {/* 背が高い画面ではコンテンツを下に寄せ、低い画面では潰れて全体が収まる。
+          justify-content:flex-end と違い、あふれても上端が切れずスクロールできる。 */}
+      <div className="title-spacer" />
+
       <div className="center fade-in">
         <h1 className="logo-wrap">
-          <Logo width={340} />
+          <Logo width={320} />
         </h1>
-        <div className="pill pill--light" style={{ marginTop: 16 }}>
+        <div className="pill pill--light" style={{ marginTop: 14 }}>
           WorkUp Lab 公式・DX研修RPG
         </div>
       </div>
