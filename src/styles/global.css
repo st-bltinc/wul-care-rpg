@@ -89,7 +89,11 @@ button {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  /* 上下ともセーフエリアを避ける。status-bar-style=black-translucent により
+     Web の中身はノッチ／Dynamic Island の裏まで広がるので、上部の inset を必ず足す。
+     左右の inset は横向き時のノッチ回避（縦画面では 0）。 */
+  padding: calc(14px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right))
+    calc(14px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
   gap: 14px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -100,11 +104,11 @@ button {
 }
 
 /* ---- トップバー ---- */
+/* 上部セーフエリアは .screen 側でまとめて確保するので、ここでは足さない（二重回避を防ぐ） */
 .topbar {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding-top: env(safe-area-inset-top);
   color: #fff;
 }
 .topbar__title {
