@@ -21,10 +21,7 @@ export function TitleScreen() {
         gap: 16,
       }}
     >
-      {/* 背が高い画面ではコンテンツを下に寄せ、低い画面では潰れて全体が収まる。
-          justify-content:flex-end と違い、あふれても上端が切れずスクロールできる。 */}
-      <div className="title-spacer" />
-
+      {/* ロゴは最上部に固定。下のスペーサーが伸びて、主人公が中央に見える。 */}
       <div className="center fade-in">
         <h1 className="logo-wrap">
           <Logo width={320} />
@@ -33,6 +30,9 @@ export function TitleScreen() {
           WorkUp Lab 公式・DX研修RPG
         </div>
       </div>
+
+      {/* 可変スペーサー：広い画面では伸びてボタンを下へ、低い画面では縮んで全体が収まる */}
+      <div className="title-spacer" />
 
       {!entering ? (
         <div className="stack">
