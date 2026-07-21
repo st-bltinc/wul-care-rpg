@@ -578,6 +578,16 @@ button {
   flex: 1 1 auto;
   min-height: 12px;
 }
+/* ロゴ／ボタンを端から少し離す固定の余白。伸びず、狭い画面では縮む。 */
+.title-gap {
+  flex: 0 1 auto;
+}
+.title-gap--top {
+  min-height: 6vh;
+}
+.title-gap--bottom {
+  min-height: 7vh;
+}
 
 /* ---- ゲームロゴ ---- */
 .logo-wrap {

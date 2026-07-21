@@ -16,13 +16,13 @@ export function TitleScreen() {
       className="screen title-screen"
       style={{
         alignItems: 'stretch',
-        // 下半分をほどよく暗くしてボタンを読みやすく。ただし最下部は完全な黒にせず、
-        // 足元の景色がうっすら残るようにして「黒い空白」に見えないようにする。
-        backgroundImage: `linear-gradient(180deg, rgba(14,21,38,0) 40%, rgba(14,21,38,.45) 60%, rgba(14,21,38,.8) 82%, rgba(14,21,38,.9) 100%), url(${TITLE_ART})`,
+        backgroundImage: `url(${TITLE_ART})`,
         gap: 16,
       }}
     >
-      {/* ロゴは最上部に固定。下のスペーサーが伸びて、主人公が中央に見える。 */}
+      {/* ロゴを最上部から少し下げるための余白 */}
+      <div className="title-gap title-gap--top" />
+
       <div className="center fade-in">
         <h1 className="logo-wrap">
           <Logo width={320} />
@@ -32,7 +32,7 @@ export function TitleScreen() {
         </div>
       </div>
 
-      {/* 可変スペーサー：広い画面では伸びてボタンを下へ、低い画面では縮んで全体が収まる */}
+      {/* 可変スペーサー：中央の主人公を見せつつ、ボタンを下方に押す */}
       <div className="title-spacer" />
 
       {!entering ? (
@@ -70,6 +70,9 @@ export function TitleScreen() {
           </Button>
         </Panel>
       )}
+
+      {/* ボタンを最下部から少し持ち上げるための余白 */}
+      <div className="title-gap title-gap--bottom" />
     </div>
   )
 }
