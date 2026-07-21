@@ -499,6 +499,210 @@ export const QUIZZES: Quiz[] = [
     explanation: '個人情報の入力は厳禁。AIは下書き・要約の補助に使い、内容は必ず人が確認します。',
     learnPoint: 'AI活用の大原則＝個人情報を入れない・出力は人が確認する。',
   },
+
+  // ============================================================
+  // 追加IT研修クイズ（DX研修が主旨のため、IT問題を厚くする）
+  // ============================================================
+
+  // ---- 受付 (chrome / gmail) ----
+  {
+    id: 'i_rec_chrome_2', category: 'it', tool: 'chrome', floorId: 'f_reception',
+    question: 'Chromeでよく使うページを、次回すぐ開けるようにするには？',
+    choices: ['ブックマーク（お気に入り）に追加する', '毎回URLを手入力する', 'スクリーンショットを撮る', '付箋にURLを書いて貼る'],
+    answer: 0,
+    explanation: 'ブックマークに登録すれば1タップで開けます。ブックマークバーに置くとさらに速い。',
+    learnPoint: 'Chromeのブックマークで、よく使うページに一瞬でアクセスできる。',
+  },
+  {
+    id: 'i_rec_chrome_3', category: 'it', tool: 'chrome', floorId: 'f_reception',
+    question: '共用パソコンで自分の閲覧履歴やログインを残したくない。Chromeでどうする？',
+    choices: ['シークレット ウィンドウを使う', '電源を抜く', '画面を暗くする', 'ブラウザを最小化する'],
+    answer: 0,
+    explanation: 'シークレットウィンドウは履歴やログイン情報を残しません。共用端末で便利です。',
+    learnPoint: '共用PCではChromeのシークレットウィンドウで痕跡を残さない。',
+  },
+  {
+    id: 'i_rec_gmail_2', category: 'it', tool: 'gmail', floorId: 'f_reception',
+    question: '同じ内容を複数の家族へ一斉に送るとき、宛先が互いに見えないようにするには？',
+    choices: ['BCCに宛先を入れる', 'CCに全員入れる', '宛先(To)に全員入れる', '一人ずつ電話する'],
+    answer: 0,
+    explanation: 'BCCは他の受信者にアドレスが見えません。個人情報保護の基本です。CCは全員に見えてしまいます。',
+    learnPoint: '一斉送信でアドレスを隠すにはGmailのBCC。個人情報の漏えいを防ぐ。',
+  },
+  {
+    id: 'i_rec_gmail_3', category: 'it', tool: 'gmail', floorId: 'f_reception',
+    question: '受け取ったメールにファイルが付いている。安全な扱い方は？',
+    choices: ['送信元に心当たりがあるか確認してから開く', 'とにかくすぐ開く', '全員に転送する', 'パスワードを返信する'],
+    answer: 0,
+    explanation: '不審な添付ファイルはウイルスの恐れ。送信元と内容を確認してから開くのが基本です。',
+    learnPoint: '添付ファイルは送信元を確認してから。安易に開かない・パスワードは教えない。',
+  },
+
+  // ---- 居室 (chrome / docs) ----
+  {
+    id: 'i_room_docs_2', category: 'it', tool: 'docs', floorId: 'f_room',
+    question: 'Googleドキュメントが「共同編集」で優れている点は？',
+    choices: ['複数人が同時に同じ文書を編集できる', '一人しか開けない', '印刷しないと共有できない', '保存ボタンを押さないと消える'],
+    answer: 0,
+    explanation: '同時編集でき、変更は自動保存。メールで何度もファイルを送り合う必要がありません。',
+    learnPoint: 'Googleドキュメントは同時編集＆自動保存。版の行き違いが起きない。',
+  },
+  {
+    id: 'i_room_docs_3', category: 'it', tool: 'docs', floorId: 'f_room',
+    question: '「誰がいつ何を直したか」を後から確認したい。ドキュメントのどの機能？',
+    choices: ['変更履歴（版の履歴）', 'フォントの色', '文字数カウント', '背景の変更'],
+    answer: 0,
+    explanation: '変更履歴でいつでも過去の状態に戻せ、編集者もわかります。記録の透明性が高まります。',
+    learnPoint: 'ドキュメントの変更履歴で、修正の経緯を確認・復元できる。',
+  },
+  {
+    id: 'i_room_chrome_2', category: 'it', tool: 'chrome', floorId: 'f_room',
+    question: '転倒予防の最新情報を調べたい。信頼できる情報の見分け方は？',
+    choices: ['公的機関や学会など発信元を確かめる', '検索の一番上を無条件に信じる', '古い日付ほど正しい', '広告を優先する'],
+    answer: 0,
+    explanation: '発信元・更新日を確認するのが大切。公的機関のサイトは信頼性が高いです。',
+    learnPoint: 'ネットの情報は発信元と日付を確認。エビデンスに基づいてケアに活かす。',
+  },
+
+  // ---- 食堂 (sheets / calendar) ----
+  {
+    id: 'i_din_sheets_2', category: 'it', tool: 'sheets', floorId: 'f_dining',
+    question: 'スプレッドシートで合計を自動で出すには？',
+    choices: ['=SUM(範囲) の関数を使う', '電卓で計算して打ち込む', '手で足していく', '合計はできない'],
+    answer: 0,
+    explanation: 'SUM関数なら数値が変わっても合計が自動更新。計算ミスや二度手間がなくなります。',
+    learnPoint: 'スプレッドシートのSUM関数で、集計を自動化してミスを防ぐ。',
+  },
+  {
+    id: 'i_din_sheets_3', category: 'it', tool: 'sheets', floorId: 'f_dining',
+    question: '「未記入のセルを目立たせて記入漏れを防ぐ」には？',
+    choices: ['条件付き書式で色を付ける', 'フォントを大きくする', 'シートを増やす', '印刷して手で塗る'],
+    answer: 0,
+    explanation: '条件付き書式で「空欄なら赤」等を自動化。服薬チェックの抜けをひと目で発見できます。',
+    learnPoint: '条件付き書式で記入漏れを自動で可視化。確認をしくみに変える。',
+  },
+  {
+    id: 'i_din_cal_2', category: 'it', tool: 'calendar', floorId: 'f_dining',
+    question: '毎日決まった時間の服薬確認を、登録し忘れないようにするには？',
+    choices: ['繰り返し予定＋通知を設定する', '毎日手で登録する', '記憶にたよる', '予定は使わない'],
+    answer: 0,
+    explanation: '繰り返し設定と通知で、定時業務の抜けを防げます。前日通知にすると準備もできます。',
+    learnPoint: 'カレンダーの繰り返し予定と通知で、定時業務の抜けを防ぐ。',
+  },
+
+  // ---- 浴室 (canva / drive) ----
+  {
+    id: 'i_bath_canva_2', category: 'it', tool: 'canva', floorId: 'f_bath',
+    question: '分かりやすい掲示物を早く作るコツは？',
+    choices: ['テンプレートを選んで文字と写真を差し替える', 'ゼロから手描きする', '文字を小さく詰め込む', '色をたくさん使う'],
+    answer: 0,
+    explanation: 'Canvaのテンプレート活用が近道。文字は大きく、色は絞ると読みやすくなります。',
+    learnPoint: 'Canvaはテンプレートを差し替えるだけ。短時間で読みやすい掲示物が作れる。',
+  },
+  {
+    id: 'i_bath_drive_2', category: 'it', tool: 'drive', floorId: 'f_bath',
+    question: '作った入浴マニュアルを、職員全員がいつでも見られるようにするには？',
+    choices: ['クラウド(Drive)に置いて共有する', '一枚だけ印刷して休憩室に置く', '自分のPCだけに保存', 'USBで一人ずつ渡す'],
+    answer: 0,
+    explanation: 'クラウド共有なら全員が最新版をいつでも閲覧でき、更新も一箇所で済みます。',
+    learnPoint: 'マニュアルはDriveで共有。全員が最新版を見られ、更新も一箇所で完結。',
+  },
+  {
+    id: 'i_bath_drive_3', category: 'it', tool: 'drive', floorId: 'f_bath',
+    question: 'Driveでファイルを共有するとき、安全な設定は？',
+    choices: ['必要な人だけに、閲覧/編集の権限を分けて渡す', '「リンクを知る全員が編集可」にする', '誰でも削除できるようにする', 'パスワードを本文に書く'],
+    answer: 0,
+    explanation: '共有範囲と権限は最小限に。閲覧者と編集者を分けると事故を防げます。',
+    learnPoint: 'Driveの共有は「必要な人に・必要な権限だけ」。情報セキュリティの基本。',
+  },
+
+  // ---- ナースステーション (drive / docs) ----
+  {
+    id: 'i_sta_drive_2', category: 'it', tool: 'drive', floorId: 'f_station',
+    question: 'クラウドに保存したファイルの利点は？',
+    choices: ['自動保存され、変更履歴から前の版に戻せる', 'PCが壊れたら必ず消える', 'ネットが無くても編集は保存されない', '容量は増やせない'],
+    answer: 0,
+    explanation: 'クラウドは自動保存・履歴・端末を選ばず閲覧可能。USB紛失のリスクも避けられます。',
+    learnPoint: 'クラウド保存は自動保存＋履歴＋どの端末からも。USB持ち出しより安全。',
+  },
+  {
+    id: 'i_sta_docs_2', category: 'it', tool: 'docs', floorId: 'f_station',
+    question: '申し送りで「ここ確認して」と、文書を直接書き換えずに伝えるには？',
+    choices: ['コメント機能で@名前を付けて依頼する', '本文を勝手に書き換える', '赤ペンで紙に書く', '口頭だけで伝える'],
+    answer: 0,
+    explanation: 'コメントで@を付けると相手に通知が届きます。原文を保ったまま確認依頼ができます。',
+    learnPoint: 'ドキュメントのコメント＋@メンションで、記録を残しつつ確認を依頼できる。',
+  },
+  {
+    id: 'i_sta_comm_1', category: 'it', tool: 'drive', floorId: 'f_station',
+    question: 'デジタルでの情報共有がうまくいくチームの特徴は？',
+    choices: ['保存場所と書き方のルールが決まっている', '各自バラバラの場所に保存する', 'ファイル名が毎回違う', '共有せず抱え込む'],
+    answer: 0,
+    explanation: '保存場所・命名・記入ルールを揃えると、誰でも必要な情報にたどり着けます。',
+    learnPoint: '共有はツールだけでなく「置き場所と書き方のルール」を揃えることが肝心。',
+  },
+
+  // ---- 事務所 (calendar / sheets) ----
+  {
+    id: 'i_off_cal_2', category: 'it', tool: 'calendar', floorId: 'f_office',
+    question: 'チーム全員の予定を見えるようにする利点は？',
+    choices: ['業務の偏りが分かり、負担を分散できる', '予定が他人に見えて危険', '入力の手間が増えるだけ', '意味はない'],
+    answer: 0,
+    explanation: '予定の可視化で「誰が忙しいか」が分かり、業務過多の偏りを調整できます。',
+    learnPoint: 'カレンダー共有で業務の偏りを可視化し、チームで負担を分散する。',
+  },
+  {
+    id: 'i_off_sheets_2', category: 'it', tool: 'sheets', floorId: 'f_office',
+    question: '大量の記録から必要な行だけ表示したい。使う機能は？',
+    choices: ['フィルタ（絞り込み）', 'フォントサイズ変更', '背景色の変更', 'シートの追加'],
+    answer: 0,
+    explanation: 'フィルタで条件に合う行だけ表示。並べ替えと合わせて集計が一気に楽になります。',
+    learnPoint: 'スプレッドシートのフィルタで、必要なデータだけを素早く抽出できる。',
+  },
+  {
+    id: 'i_off_cal_3', category: 'it', tool: 'calendar', floorId: 'f_office',
+    question: '会議室のダブルブッキングを防ぐには？',
+    choices: ['会議室を予定(リソース)として予約・共有する', '口頭で先に言った者勝ちにする', 'ホワイトボードにだけ書く', '予約はしない'],
+    answer: 0,
+    explanation: '会議室を予定として共有予約すれば、空き状況が一目で分かり重複を防げます。',
+    learnPoint: 'カレンダーで場所・設備も予約管理すると、ダブルブッキングを防げる。',
+  },
+
+  // ---- 会議室 (zoom / meet) ----
+  {
+    id: 'i_mtg_zoom_3', category: 'it', tool: 'zoom', floorId: 'f_meeting',
+    question: 'オンライン会議を始める前に、当日慌てないためにすることは？',
+    choices: ['カメラ・マイク・通信を事前に接続テストする', '開始時刻ちょうどに初めて起動する', 'テストは不要', '音は切っておく'],
+    answer: 0,
+    explanation: '事前の接続テストで「聞こえない・映らない」を防げます。慣れておくことも大切です。',
+    learnPoint: 'オンライン会議は事前の接続テストが命。当日のトラブルを防ぐ。',
+  },
+  {
+    id: 'i_mtg_meet_3', category: 'it', tool: 'meet', floorId: 'f_meeting',
+    question: '在宅の家族へオンライン面会を案内する。相手に優しい方法は？',
+    choices: ['カレンダー予定のMeetリンクを送り、入り方を一言添える', '専門用語だけで説明する', '当日口頭でURLを読み上げる', '相手に自力で調べさせる'],
+    answer: 0,
+    explanation: 'リンクを送り、簡単な手順を添えると、不慣れな方も安心して参加できます。',
+    learnPoint: 'Meetは予定のリンク共有＋やさしい案内で、誰でも参加しやすくなる。',
+  },
+
+  // ---- 施設全体 (chatgpt / AI活用) ----
+  {
+    id: 'i_fac_chatgpt_3', category: 'it', tool: 'chatgpt', floorId: 'f_facility',
+    question: 'AIに申し送りの要点整理を頼むとき、良い頼み方は？',
+    choices: ['「300字で・箇条書きで」など条件を具体的に伝える', '「いい感じにして」とだけ言う', '個人名や病名をそのまま入れる', '出力をそのまま無確認で使う'],
+    answer: 0,
+    explanation: '条件を具体的にするほど精度が上がります。個人情報は入れず、出力は必ず人が確認します。',
+    learnPoint: 'AIには条件を具体的に。個人情報は入れず、出力は人が確認する。',
+  },
+  {
+    id: 'i_fac_chatgpt_4', category: 'it', tool: 'chatgpt', floorId: 'f_facility',
+    question: 'AIを現場で活かす考え方として正しいのは？',
+    choices: ['下書きや整理を任せ、判断とケアは人が行う', '判断まで全部AIに任せる', '利用者情報を学習させる', '使えば使うほど記録は不要になる'],
+    answer: 0,
+    explanation: 'AIは下書き・要約・調べ物の相棒。最終判断と利用者への関わりは人の役割です。',
+    learnPoint: 'AIは作業を助ける道具。判断とケアは人が担う——これがDXの土台。',
+  },
 ]
 
 export const QUIZ_MAP: Record<string, Quiz> = Object.fromEntries(

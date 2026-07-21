@@ -3,7 +3,7 @@ import { useGameStore } from '@/store/useGameStore'
 import { Button, Panel, Pill, Sprite, Stars } from '@/components/ui'
 import { WEAPONS } from '@/data/weapons'
 import { weaponArt } from '@/data/art'
-import { MAX_WEAPON_LEVEL, enhanceCost, weaponAtk, weaponLevel } from '@/game/engine'
+import { MAX_WEAPON_LEVEL, enhanceCost, weaponLevel } from '@/game/engine'
 
 export function WeaponsScreen() {
   const player = useGameStore((s) => s.player)
@@ -31,7 +31,8 @@ export function WeaponsScreen() {
         </span>
       </div>
       <p className="muted">
-        ITツールを覚えると武器になる。装備した武器の<b>特効</b>が敵の弱点に合うとダメージ2倍！
+        ITツールを覚えると武器になる。戦闘の<b>威力は「クイズの正解」で決まり</b>、装備で大きくは変わりません。
+        武器を変えると<b>攻撃の演出（技）が変わります</b>。
       </p>
 
       <Panel className="stack--sm">
@@ -40,7 +41,7 @@ export function WeaponsScreen() {
           <Pill light>💰 {player.gold}G</Pill>
         </div>
         <div className="muted">
-          欠片とゴールドで武器を<b>強化</b>できます（1段階ごとに攻撃+2、最大+
+          欠片とゴールドで武器を<b>強化</b>できます（1段階ごとに攻撃がわずかに上昇、最大+
           {MAX_WEAPON_LEVEL}）。欠片は同じツールの復習や、研修ガチャの被りから手に入ります。
         </div>
       </Panel>
@@ -85,11 +86,11 @@ export function WeaponsScreen() {
                   {has ? (
                     <>
                       <div className="muted">🛠️ {w.toolLabel}</div>
-                      <div className="muted" style={{ color: 'var(--primary-deep)' }}>
-                        ⚔️攻撃+{weaponAtk(w, level)}／✨{w.effectDesc}
-                      </div>
                       <div className="muted" style={{ color: 'var(--mgmt)', fontWeight: 700 }}>
-                        🎯 {w.passiveDesc}
+                        {w.fx.icon} 技：{w.fx.moveName}
+                      </div>
+                      <div className="muted" style={{ color: 'var(--primary-deep)' }}>
+                        ✨{w.effectDesc}
                       </div>
                     </>
                   ) : (
@@ -111,7 +112,7 @@ export function WeaponsScreen() {
                   <div className="grow muted">
                     {maxed
                       ? '✨ 強化はここまで。使いこなしている！'
-                      : `つぎの強化：🔧${cost.shards} ／ 💰${cost.gold}G（攻撃+2）`}
+                      : `つぎの強化：🔧${cost.shards} ／ 💰${cost.gold}G`}
                   </div>
                   {!maxed && (
                     <Button

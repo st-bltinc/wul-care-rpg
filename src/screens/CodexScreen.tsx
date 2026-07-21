@@ -180,7 +180,7 @@ export function CodexScreen() {
                         💡 {p}
                       </div>
                     ))}
-                    <div className="muted">🎯 戦闘での効果：{w.passiveDesc}</div>
+                    <div className="muted">{w.fx.icon} 攻撃の技：{w.fx.moveName}</div>
                   </div>
                 ) : (
                   <div className="muted">

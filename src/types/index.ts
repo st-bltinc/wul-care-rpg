@@ -35,20 +35,19 @@ export type TroubleTag =
   | 'remote' // 遠隔連携不足
 
 /**
- * 武器の固有効果。元になったITツールの「実際の使いどころ」を戦闘の挙動に翻訳したもの。
- * 例: Canva＝分かりやすい掲示物 → 選択肢が絞られて迷わなくなる。
+ * 武器の攻撃演出。武器は威力をほとんど変えず、攻撃の見た目だけを変える。
+ * 元になったITツールをイメージした色・エフェクト絵文字・技名。
  */
-export type WeaponPassive =
-  | 'crit' // Chrome: 探索して弱点を突く。会心（1.5倍）が出やすい
-  | 'guard' // Gmail: 記録の残る連絡。受けるダメージを軽減
-  | 'xp' // ドキュメント: 共同編集で学びが増える。獲得XP+
-  | 'superEffective' // スプレッドシート: 集計で確実に。特効ダメージをさらに強化
-  | 'firstStrike' // カレンダー: 先回り。戦闘開始時に先制ダメージ
-  | 'pierce' // Drive: 情報を全員へ。敵の最大HPに応じた追加ダメージ
-  | 'hint' // Canva: 分かりやすい掲示。誤答の選択肢を1つ消す
-  | 'dodge' // Zoom: 遠隔から対応。敵の反撃を回避することがある
-  | 'rally' // Meet: チームを招集。正解時に追撃が出ることがある
-  | 'aiAssist' // ChatGPT: AIが要点整理。各戦闘の最初のクイズで選択肢を2つに絞る
+export interface WeaponFx {
+  /** エフェクトの絵文字（攻撃時に敵に飛ぶ／弾ける） */
+  icon: string
+  /** ダメージ表示やエフェクトの色 */
+  color: string
+  /** 技名（攻撃時に表示） */
+  moveName: string
+  /** 演出の種類（アニメーションの出し分け） */
+  kind: 'slash' | 'shoot' | 'burst' | 'beam' | 'orbit'
+}
 
 export interface Weapon {
   id: string
@@ -57,13 +56,11 @@ export interface Weapon {
   toolLabel: string // 元になったITツールの正式名（学習対象を明示）
   rarity: Rarity
   atk: number
-  /** この困りごとタグに対して特効（ダメージ2倍） */
+  /** この困りごとタグが弱点の敵に、ささやかな特効（学習の合図） */
   effectTag: TroubleTag
   effectDesc: string
-  /** 固有効果。ツールの実用シーンをゲーム挙動に落としたもの */
-  passive: WeaponPassive
-  /** 固有効果のプレイヤー向け説明 */
-  passiveDesc: string
+  /** 攻撃の演出（威力ではなく見た目を変える） */
+  fx: WeaponFx
   emoji: string
   desc: string
 }

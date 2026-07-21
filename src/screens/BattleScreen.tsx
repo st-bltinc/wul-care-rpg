@@ -6,16 +6,8 @@ import { getMonster } from '@/data/monsters'
 import { getFloor } from '@/data/floors'
 import { careQuizzesForFloor, itQuizzesForFloor } from '@/data/quizzes'
 import { getWeapon, WEAPONS } from '@/data/weapons'
-import {
-  computeDamage,
-  enemyDamage,
-  effectiveMaxHp,
-  firstStrikeDamage,
-  maskedWrongChoices,
-  rewardFor,
-  xpMultiplier,
-} from '@/game/engine'
-import type { Quiz } from '@/types'
+import { computeDamage, enemyDamage, effectiveMaxHp, rewardFor, xpMultiplier } from '@/game/engine'
+import type { ITToolId, Quiz, WeaponFx } from '@/types'
 import { getTitle } from '@/data/titles'
 import {
   sfxCorrect,
@@ -30,24 +22,15 @@ import {
   sfxWrong,
 } from '@/game/sound'
 
-type Phase =
-  | 'intro'
-  | 'careQuiz'
-  | 'careFeedback'
-  | 'victory'
-  | 'itQuiz'
-  | 'itFeedback'
-  | 'reward'
-  | 'defeat'
+type Phase = 'intro' | 'quiz' | 'feedback' | 'victory' | 'reward' | 'defeat'
 
 interface RewardState {
   weaponId: string
   weaponIsNew: boolean
   /** 武器が被ったときに復習ボーナスとして得た欠片 */
   shardsGained: number
-  itCorrect: boolean
+  itLearnedCount: number
   xpGained: number
-  xpBoosted: boolean
   gold: number
   tickets: number
   levelsGained: number
@@ -59,6 +42,9 @@ interface RewardState {
   newTitles: string[]
 }
 
+/** 素手（武器未装備）の攻撃演出 */
+const FIST_FX: WeaponFx = { icon: '✊', color: '#e5a34a', moveName: '現場力パンチ', kind: 'burst' }
+
 const shuffle = <T,>(arr: T[]): T[] => {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
@@ -66,6 +52,17 @@ const shuffle = <T,>(arr: T[]): T[] => {
     ;[a[i], a[j]] = [a[j], a[i]]
   }
   return a
+}
+
+/**
+ * 戦闘の出題プール。DX研修が主旨なので IT問題を厚くする（IT を2倍の重みで混ぜる）。
+ * 介護クイズも織り交ぜ、どちらも正解＝攻撃になる。
+ */
+const buildQuizPool = (floorId: string): Quiz[] => {
+  const care = careQuizzesForFloor(floorId)
+  const it = itQuizzesForFloor(floorId)
+  const pool = [...care, ...it, ...it] // IT を2倍
+  return shuffle(pool)
 }
 
 export function BattleScreen() {
@@ -83,29 +80,20 @@ export function BattleScreen() {
   const [playerHp, setPlayerHp] = useState(() => effectiveMaxHp(s.getState().player))
   const playerMaxHp = effectiveMaxHp(s.getState().player)
 
-  const carePool = useMemo(() => (floorId ? shuffle(careQuizzesForFloor(floorId)) : []), [floorId])
-  const [careIdx, setCareIdx] = useState(0)
-  const itQuiz = useMemo<Quiz | null>(() => {
-    if (!floorId) return null
-    const pool = itQuizzesForFloor(floorId)
-    const learned = s.getState().player.answeredItTools
-    const fresh = pool.find((q) => q.tool && !learned.includes(q.tool))
-    return fresh ?? pool[0] ?? null
-  }, [floorId])
+  const pool = useMemo(() => (floorId ? buildQuizPool(floorId) : []), [floorId])
+  const [quizIdx, setQuizIdx] = useState(0)
 
   const [chosen, setChosen] = useState<number | null>(null)
   const [lastCorrect, setLastCorrect] = useState(false)
-  const [lastDamage, setLastDamage] = useState<{ v: number; special: boolean; crit: boolean; rally: boolean } | null>(
-    null,
-  )
-  const [lastDodged, setLastDodged] = useState(false)
+  const [lastDamage, setLastDamage] = useState<{ v: number; special: boolean } | null>(null)
   const [floatKey, setFloatKey] = useState(0)
   const [enemyHurt, setEnemyHurt] = useState(false)
+  const [showFx, setShowFx] = useState(false)
   const [reward, setReward] = useState<RewardState | null>(null)
   const [committed, setCommitted] = useState(false)
-  /** 武器のヒント効果で伏せる誤答のindex（クイズごとに算出） */
-  const [masked, setMasked] = useState<number[]>([])
-  const [quizCount, setQuizCount] = useState(0)
+
+  // 戦闘中に正解したITツール（学習として記録する）
+  const learnedTools = useMemo(() => new Set<ITToolId>(), [])
 
   if (!floor || !monster) {
     return (
@@ -119,108 +107,82 @@ export function BattleScreen() {
   }
 
   const equipped = getWeapon(s.getState().player.equippedWeaponId)
-  const currentCare = carePool.length ? carePool[careIdx % carePool.length] : null
+  const fx = equipped?.fx ?? FIST_FX
+  const currentQuiz = pool.length ? pool[quizIdx % pool.length] : null
 
-  /** 武器のヒント効果で、誤答の選択肢をランダムに伏せる */
-  const maskWrongChoices = (quiz: Quiz, isFirst: boolean): number[] => {
-    const n = maskedWrongChoices(equipped, isFirst)
-    if (n === 0) return []
-    const wrong = quiz.choices.map((_, i) => i).filter((i) => i !== quiz.answer)
-    return shuffle(wrong).slice(0, n)
-  }
-
-  /** たたかう：カレンダーの先制ダメージを入れてから最初のクイズへ */
-  const startFight = () => {
-    const first = firstStrikeDamage(s.getState().player, equipped)
-    if (first > 0) {
-      setEnemyHp((hp) => Math.max(0, hp - first))
-      setLastDamage({ v: first, special: false, crit: false, rally: false })
-      setFloatKey((k) => k + 1)
-      setEnemyHurt(true)
-      setTimeout(() => setEnemyHurt(false), 400)
-    }
-    if (currentCare) setMasked(maskWrongChoices(currentCare, true))
-    setPhase('careQuiz')
-  }
-
-  // ---- 介護クイズ回答 ----
-  const answerCare = (idx: number) => {
-    if (!currentCare || chosen !== null) return
+  // ---- クイズ回答（正解で攻撃 / 不正解で被弾） ----
+  const answer = (idx: number) => {
+    if (!currentQuiz || chosen !== null) return
     setChosen(idx)
-    setQuizCount((c) => c + 1)
-    const correct = idx === currentCare.answer
+    const correct = idx === currentQuiz.answer
     setLastCorrect(correct)
-    setLastDodged(false)
+
     if (correct) {
+      if (currentQuiz.category === 'it' && currentQuiz.tool) learnedTools.add(currentQuiz.tool)
       const dmg = computeDamage(s.getState().player, equipped, monster)
-      setLastDamage({ v: dmg.damage, special: dmg.special, crit: dmg.crit, rally: dmg.rally })
+      setLastDamage({ v: dmg.damage, special: dmg.special })
       setFloatKey((k) => k + 1)
+      setShowFx(true)
       setEnemyHurt(true)
       setEnemyHp((hp) => Math.max(0, hp - dmg.damage))
       setTimeout(() => setEnemyHurt(false), 400)
+      setTimeout(() => setShowFx(false), 600)
       sfxCorrect()
-      setTimeout(dmg.special || dmg.crit || dmg.rally ? sfxSpecial : sfxHit, 160)
+      setTimeout(dmg.special ? sfxSpecial : sfxHit, 140)
     } else {
-      const atk = enemyDamage(monster, equipped)
-      setLastDamage({ v: atk.damage, special: false, crit: false, rally: false })
-      setLastDodged(atk.dodged)
-      setPlayerHp((hp) => Math.max(0, hp - atk.damage))
+      const dmg = enemyDamage(monster)
+      setLastDamage({ v: dmg, special: false })
+      setPlayerHp((hp) => Math.max(0, hp - dmg))
       sfxWrong()
-      if (!atk.dodged) setTimeout(sfxDamage, 220)
+      setTimeout(sfxDamage, 200)
     }
-    setPhase('careFeedback')
+    setPhase('feedback')
   }
 
-  const afterCareFeedback = () => {
+  const afterFeedback = () => {
     setChosen(null)
     if (enemyHp <= 0) {
       sfxVictory()
       setPhase('victory')
     } else if (playerHp <= 0) {
+      recordLearning()
       sfxDefeat()
       setPhase('defeat')
     } else {
-      const next = carePool.length ? carePool[(careIdx + 1) % carePool.length] : null
-      setCareIdx((i) => i + 1)
-      setMasked(next ? maskWrongChoices(next, false) : [])
-      setPhase('careQuiz')
+      setQuizIdx((i) => i + 1)
+      setPhase('quiz')
     }
   }
 
-  // ---- IT研修クイズ回答 ----
-  const goItQuiz = () => {
-    setChosen(null)
-    setMasked(itQuiz ? maskWrongChoices(itQuiz, quizCount === 0) : [])
-    setPhase('itQuiz')
-  }
-
-  const answerIt = (idx: number) => {
-    if (!itQuiz || chosen !== null) return
-    setChosen(idx)
-    const correct = idx === itQuiz.answer
-    setLastCorrect(correct)
-    if (correct) sfxCorrect()
-    else sfxWrong()
-    setPhase('itFeedback')
+  /** 戦闘中に正解したITツールを学習済みとして記録 */
+  const recordLearning = () => {
+    const st = useGameStore.getState()
+    learnedTools.forEach((t) => st.recordItLearned(t))
   }
 
   // ---- 戦闘結果を確定（1回だけ） ----
   const commitBattle = () => {
-    if (committed || !itQuiz) return
+    if (committed) return
     setCommitted(true)
     const st = useGameStore.getState()
-    const itCorrect = lastCorrect
-    const rewardWeapon = WEAPONS.find((w) => w.sourceTool === itQuiz.tool)!
 
+    recordLearning()
     st.recordDefeat(monster.id)
+
+    // 報酬武器 = このフロアで学ぶツールの武器（複数あれば先頭）
+    const rewardWeapon =
+      WEAPONS.find((w) => floor.learnTools.includes(w.sourceTool)) ??
+      WEAPONS.find((w) => w.effectTag === monster.weaknessTag) ??
+      WEAPONS[0]
     const weaponGain = st.addWeapon(rewardWeapon.id)
-    if (itCorrect && itQuiz.tool) st.recordItLearned(itQuiz.tool)
 
     const base = rewardFor(monster)
-    const xpRate = xpMultiplier(st.player, equipped) // お守り＋ドキュメントの獲得XPボーナス
-    const xpGained = Math.round((itCorrect ? base.xp * 1.5 : base.xp) * xpRate)
+    const itCount = learnedTools.size
+    const xpRate = xpMultiplier(st.player)
+    // IT研修の成果（正解ツール数）に応じてXPにボーナス
+    const xpGained = Math.round(base.xp * (1 + 0.15 * itCount) * xpRate)
     const gold = base.gold
-    const tickets = base.tickets + (itCorrect ? 1 : 0)
+    const tickets = base.tickets + (itCount > 0 ? 1 : 0)
 
     const lu = st.gainXp(xpGained)
     st.addRewards(gold, tickets)
@@ -235,9 +197,8 @@ export function BattleScreen() {
       weaponId: rewardWeapon.id,
       weaponIsNew: weaponGain.isNew,
       shardsGained: weaponGain.shards,
-      itCorrect,
+      itLearnedCount: itCount,
       xpGained,
-      xpBoosted: xpRate > 1,
       gold,
       tickets,
       levelsGained: lu.levelsGained,
@@ -249,7 +210,6 @@ export function BattleScreen() {
       newTitles,
     })
 
-    // 報酬 → レベルアップ → フロア攻略 の順に音を重ねる
     sfxReward()
     if (lu.levelsGained > 0) setTimeout(sfxLevelUp, 500)
     if (isBoss && !alreadyCleared) setTimeout(sfxFloorClear, lu.levelsGained > 0 ? 1100 : 500)
@@ -260,17 +220,10 @@ export function BattleScreen() {
   // ============================================================
   // 描画
   // ============================================================
-
-  // 戦闘フィールド（敵・HP）を共有表示するフェーズ
-  const showField = ['intro', 'careQuiz', 'careFeedback', 'victory', 'itQuiz', 'itFeedback'].includes(
-    phase,
-  )
+  const showField = ['intro', 'quiz', 'feedback', 'victory'].includes(phase)
 
   return (
-    <div
-      className="screen"
-      style={{ background: floor.bg, gap: 12 }}
-    >
+    <div className="screen" style={{ background: floor.bg, gap: 12 }}>
       {showField && (
         <>
           <div className="topbar">
@@ -290,13 +243,22 @@ export function BattleScreen() {
             <Sprite
               src={monsterArt(monster)}
               alt={monster.name}
-              fallback={monster.emoji}
               size={168}
+              fallback={monster.emoji}
               className={`${enemyHurt ? 'shake' : 'floaty'} ${phase === 'victory' ? 'pop' : ''}`}
               style={phase === 'victory' ? { opacity: 0.25, filter: 'grayscale(1)' } : undefined}
             />
-            {lastDamage && phase === 'careFeedback' && lastCorrect && (
-              <div key={floatKey} className={`dmg-float ${lastDamage.special ? 'special' : ''}`}>
+            {showFx && phase === 'feedback' && lastCorrect && (
+              <div key={`fx${floatKey}`} className={`attack-fx attack-fx--${fx.kind}`} style={{ color: fx.color }}>
+                {fx.icon}
+              </div>
+            )}
+            {lastDamage && phase === 'feedback' && lastCorrect && (
+              <div
+                key={floatKey}
+                className={`dmg-float ${lastDamage.special ? 'special' : ''}`}
+                style={!lastDamage.special ? { color: fx.color } : undefined}
+              >
                 -{lastDamage.v}
                 {lastDamage.special && ' 特効!'}
               </div>
@@ -309,6 +271,9 @@ export function BattleScreen() {
               {(monster.kind === 'boss' || monster.kind === 'last') && (
                 <span className="badge" style={{ background: 'var(--gold-deep)' }}>BOSS</span>
               )}
+              {monster.kind === 'mid' && (
+                <span className="badge" style={{ background: '#7c5cd6' }}>中ボス</span>
+              )}
               <span className="grow" />
               <span className="tag">弱点：{monster.weaknessHint}</span>
             </div>
@@ -317,12 +282,10 @@ export function BattleScreen() {
               <Sprite src={HERO_ART} alt="" size={34} />
               <span style={{ fontWeight: 900 }}>{s.getState().player.name}</span>
               <span className="grow" />
-              {equipped && (
-                <span className="row" style={{ gap: 4 }}>
-                  <Sprite src={weaponArt(equipped)} alt="" size={22} fallback={equipped.emoji} />
-                  <span className="tag">{equipped.name}</span>
-                </span>
-              )}
+              <span className="row" style={{ gap: 4 }}>
+                {equipped && <Sprite src={weaponArt(equipped)} alt="" size={22} fallback={equipped.emoji} />}
+                <span className="tag">{equipped ? equipped.name : '素手'}</span>
+              </span>
             </div>
             <Bar value={playerHp} max={playerMaxHp} color="var(--hp)" />
           </Panel>
@@ -334,57 +297,43 @@ export function BattleScreen() {
           <div className="h2">⚠️ 困りごと出現！</div>
           <p style={{ margin: 0 }}>{monster.flavor}</p>
           <div className="muted">
-            介護クイズに正解して弱点を突こう。武器の特効が弱点に合うと大ダメージ！
+            クイズに正解して攻撃しよう。<b>IT研修クイズ</b>を中心に、介護クイズも出るよ。
           </div>
-          {equipped && (
-            <div
-              style={{
-                background: '#e6f0ff',
-                borderRadius: 10,
-                padding: '8px 12px',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-                color: 'var(--primary-deep)',
-              }}
-            >
-              {equipped.emoji} {equipped.name}の効果：{equipped.passiveDesc}
+          <div
+            style={{
+              background: '#e6f0ff',
+              borderRadius: 10,
+              padding: '8px 12px',
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              color: 'var(--primary-deep)',
+            }}
+          >
+            {fx.icon} 装備「{equipped ? equipped.name : '素手'}」の技：{fx.moveName}
+            <div className="muted" style={{ fontWeight: 600 }}>
+              ※威力は正解で決まります。武器は攻撃の演出が変わります。
             </div>
-          )}
-          <Button variant="danger" lg block onClick={startFight}>
+          </div>
+          <Button variant="danger" lg block onClick={() => setPhase('quiz')}>
             たたかう
           </Button>
         </Panel>
       )}
 
-      {phase === 'careQuiz' && currentCare && (
-        <QuizBlock
-          badge="介護クイズ"
-          badgeColor="var(--care)"
-          quiz={currentCare}
-          chosen={chosen}
-          masked={masked}
-          hintLabel={equipped && masked.length > 0 ? `${equipped.name}が選択肢を絞った！` : undefined}
-          onAnswer={answerCare}
-        />
+      {phase === 'quiz' && currentQuiz && (
+        <QuizBlock quiz={currentQuiz} chosen={chosen} onAnswer={answer} />
       )}
 
-      {phase === 'careFeedback' && currentCare && (
+      {phase === 'feedback' && currentQuiz && (
         <FeedbackBlock
           correct={lastCorrect}
-          quiz={currentCare}
+          quiz={currentQuiz}
           extra={
             lastCorrect
-              ? `${monster.name}に ${lastDamage?.v} のダメージ！` +
-                [
-                  lastDamage?.special ? '（特効）' : '',
-                  lastDamage?.crit ? '（会心！）' : '',
-                  lastDamage?.rally ? '（チーム追撃！）' : '',
-                ].join('')
-              : lastDodged
-                ? `${monster.name}の反撃を遠隔から回避した！ ダメージなし`
-                : `${monster.name}の反撃！ ${lastDamage?.v} のダメージを受けた…`
+              ? `${fx.moveName}！ ${monster.name}に ${lastDamage?.v} のダメージ${lastDamage?.special ? '（特効）' : ''}`
+              : `不正解… ${monster.name}の反撃で ${lastDamage?.v} のダメージを受けた`
           }
-          onNext={afterCareFeedback}
+          onNext={afterFeedback}
         />
       )}
 
@@ -393,34 +342,12 @@ export function BattleScreen() {
           <div className="pop" style={{ fontSize: 48 }}>🎉</div>
           <div className="h2">{monster.name} を撃退！</div>
           <p className="muted" style={{ margin: 0 }}>
-            現場の困りごとをひとつ解決した。つづいてWULのIT研修だ！
+            現場の困りごとをひとつ解決した。報酬を受け取ろう！
           </p>
-          <Button variant="primary" lg block onClick={goItQuiz}>
-            IT研修クイズへ ▶
+          <Button variant="primary" lg block onClick={commitBattle}>
+            報酬を受け取る 🎁
           </Button>
         </Panel>
-      )}
-
-      {phase === 'itQuiz' && itQuiz && (
-        <QuizBlock
-          badge="WUL IT研修クイズ"
-          badgeColor="var(--it)"
-          quiz={itQuiz}
-          chosen={chosen}
-          masked={masked}
-          hintLabel={equipped && masked.length > 0 ? `${equipped.name}が選択肢を絞った！` : undefined}
-          onAnswer={answerIt}
-        />
-      )}
-
-      {phase === 'itFeedback' && itQuiz && (
-        <FeedbackBlock
-          correct={lastCorrect}
-          quiz={itQuiz}
-          learn={itQuiz.learnPoint}
-          onNext={commitBattle}
-          nextLabel="報酬を受け取る 🎁"
-        />
       )}
 
       {phase === 'reward' && reward && (
@@ -438,7 +365,7 @@ export function BattleScreen() {
             <div style={{ fontSize: 48 }}>💤</div>
             <div className="h2">力尽きてしまった…</div>
             <p className="muted" style={{ margin: 0 }}>
-              無理は禁物。ひと休みして、スキルや武器を整えてから挑もう。
+              無理は禁物。ひと休みして、スキルや装備を整えてから挑もう。
             </p>
             <Button
               variant="primary"
@@ -463,51 +390,38 @@ export function BattleScreen() {
 
 // ---- クイズ表示ブロック ----
 function QuizBlock({
-  badge,
-  badgeColor,
   quiz,
   chosen,
-  masked,
-  hintLabel,
   onAnswer,
 }: {
-  badge: string
-  badgeColor: string
   quiz: Quiz
   chosen: number | null
-  /** 武器のヒント効果で伏せられた誤答のindex */
-  masked: number[]
-  hintLabel?: string
   onAnswer: (i: number) => void
 }) {
+  const isIt = quiz.category === 'it'
   return (
     <Panel className="stack--sm fade-in">
-      <span className="badge" style={{ background: badgeColor, alignSelf: 'flex-start' }}>
-        {badge}
+      <span
+        className="badge"
+        style={{ background: isIt ? 'var(--it)' : 'var(--care)', alignSelf: 'flex-start' }}
+      >
+        {isIt ? 'WUL IT研修クイズ' : '介護クイズ'}
       </span>
       <div style={{ fontWeight: 800, fontSize: '1.05rem' }}>{quiz.question}</div>
-      {hintLabel && (
-        <div className="tag" style={{ background: '#e6f0ff', color: 'var(--primary-deep)', alignSelf: 'flex-start' }}>
-          ✨ {hintLabel}
-        </div>
-      )}
       <div className="stack--sm" style={{ marginTop: 4 }}>
-        {quiz.choices.map((c, i) => {
-          const isMasked = masked.includes(i)
-          return (
-            <button
-              key={i}
-              className={`choice ${chosen !== null && i === quiz.answer ? 'correct' : ''} ${
-                chosen === i && i !== quiz.answer ? 'wrong' : ''
-              } ${(chosen !== null && chosen !== i && i !== quiz.answer) || isMasked ? 'dim' : ''}`}
-              disabled={chosen !== null || isMasked}
-              onClick={() => onAnswer(i)}
-            >
-              <span className="choice__mark">{'ABCD'[i]}</span>
-              {isMasked ? <s style={{ opacity: 0.6 }}>{c}</s> : c}
-            </button>
-          )
-        })}
+        {quiz.choices.map((c, i) => (
+          <button
+            key={i}
+            className={`choice ${chosen !== null && i === quiz.answer ? 'correct' : ''} ${
+              chosen === i && i !== quiz.answer ? 'wrong' : ''
+            } ${chosen !== null && chosen !== i && i !== quiz.answer ? 'dim' : ''}`}
+            disabled={chosen !== null}
+            onClick={() => onAnswer(i)}
+          >
+            <span className="choice__mark">{'ABCD'[i]}</span>
+            {c}
+          </button>
+        ))}
       </div>
     </Panel>
   )
@@ -518,23 +432,16 @@ function FeedbackBlock({
   correct,
   quiz,
   extra,
-  learn,
   onNext,
-  nextLabel = 'つぎへ ▶',
 }: {
   correct: boolean
   quiz: Quiz
   extra?: string
-  learn?: string
   onNext: () => void
-  nextLabel?: string
 }) {
   return (
     <Panel className="stack--sm fade-in">
-      <div
-        className="h2"
-        style={{ color: correct ? 'var(--good)' : 'var(--danger)' }}
-      >
+      <div className="h2" style={{ color: correct ? 'var(--good)' : 'var(--danger)' }}>
         {correct ? '⭕ 正解！' : '❌ 残念…'}
       </div>
       {extra && <div style={{ fontWeight: 800 }}>{extra}</div>}
@@ -543,7 +450,7 @@ function FeedbackBlock({
           解説
         </div>
         <div style={{ fontSize: '0.95rem' }}>{quiz.explanation}</div>
-        {learn && (
+        {quiz.learnPoint && (
           <div
             style={{
               marginTop: 8,
@@ -555,12 +462,12 @@ function FeedbackBlock({
               color: 'var(--primary-deep)',
             }}
           >
-            💡 学びポイント：{learn}
+            💡 学びポイント：{quiz.learnPoint}
           </div>
         )}
       </div>
       <Button variant="primary" lg block onClick={onNext}>
-        {nextLabel}
+        つぎへ ▶
       </Button>
     </Panel>
   )
@@ -619,7 +526,7 @@ function RewardView({
         >
           🛠️ 元ツール：{weapon.toolLabel}
           <br />
-          ✨ {weapon.effectDesc}
+          {weapon.fx.icon} 技：{weapon.fx.moveName}（装備すると攻撃の演出が変わる）
         </div>
         {!reward.weaponIsNew && (
           <div
@@ -637,14 +544,17 @@ function RewardView({
             </div>
           </div>
         )}
-        {!reward.itCorrect && (
-          <div className="muted">IT研修は不正解でも武器はもらえるよ。次は正解して「学習」を達成しよう！</div>
-        )}
       </Panel>
 
       <Panel className="stack--sm fade-in">
+        {reward.itLearnedCount > 0 && (
+          <div className="kv">
+            <span>💠 学んだITツール</span>
+            <b>+{reward.itLearnedCount}</b>
+          </div>
+        )}
         <div className="kv">
-          <span>けいけんち{reward.xpBoosted && '（お守り効果✨）'}</span>
+          <span>けいけんち</span>
           <b>+{reward.xpGained} XP</b>
         </div>
         <div className="kv">
@@ -660,9 +570,7 @@ function RewardView({
             <div className="h2" style={{ color: 'var(--gold-deep)' }}>
               ⬆️ レベルアップ！ Lv.{reward.newLevel}
             </div>
-            <div className="muted">
-              スキルP +{reward.skillPointsGained} ／ 最大HP・攻撃力アップ
-            </div>
+            <div className="muted">スキルP +{reward.skillPointsGained} ／ 最大HP・攻撃力アップ</div>
             {reward.roleChanged && (
               <div style={{ marginTop: 6, fontWeight: 800, color: 'var(--primary-deep)' }}>
                 🎖️ 役割が「{reward.newRole}」に昇格！
