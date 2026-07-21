@@ -1,6 +1,5 @@
 import { useGameStore } from '@/store/useGameStore'
 import { Button, Panel, Bar, Pill, Sprite } from '@/components/ui'
-import { Logo } from '@/components/Logo'
 import { effectiveMaxHp, xpToNext } from '@/game/engine'
 import { getFloor, FLOORS } from '@/data/floors'
 import { getTitle } from '@/data/titles'
@@ -16,8 +15,6 @@ export function HomeScreen() {
 
   return (
     <div className="screen screen--with-tab">
-      <Logo width={190} />
-
       {/* プレイヤーヘッダー */}
       <Panel className="stack--sm">
         <div className="row">

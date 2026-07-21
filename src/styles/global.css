@@ -110,6 +110,12 @@ button {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
+/* 縦並びが画面に収まらない時、flex要素は既定で縮む（特に overflow:hidden の要素は
+   最小サイズが0になり中身ごと潰れる）。パネル類は縮ませず、はみ出したら .screen が
+   スクロールするようにする。※タイトル画面のスペーサーは後段の flex 指定が優先され縮む。 */
+.screen > * {
+  flex-shrink: 0;
+}
 
 /* タブバーは在フロー要素として下に並ぶので、スクロール領域側で余白を確保する必要はない。
    セーフエリア（ホームバー）はタブバー側の padding-bottom が持つため、ここでは 0 に戻す。 */
