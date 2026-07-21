@@ -16,7 +16,9 @@ export function TitleScreen() {
       className="screen title-screen"
       style={{
         alignItems: 'stretch',
-        backgroundImage: `url(${TITLE_ART})`,
+        // 中央の主人公は明るいまま、ボタンのある下部だけをほどよく暗くして、
+        // ボタンが背景と混ざらないようにする。
+        backgroundImage: `linear-gradient(180deg, rgba(14,21,38,0) 58%, rgba(14,21,38,.35) 78%, rgba(14,21,38,.72) 100%), url(${TITLE_ART})`,
         gap: 16,
       }}
     >
