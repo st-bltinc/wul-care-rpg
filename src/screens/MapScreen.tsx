@@ -55,46 +55,60 @@ export function MapScreen() {
                 </div>
               </div>
 
-              {unlocked && open && (
-                <Panel className="stack--sm fade-in" style={{ marginTop: 8 }}>
-                  <p style={{ fontSize: '0.9rem', margin: 0 }}>{floor.story}</p>
-                  <div className="divider" />
-                  {floor.enemyIds.map((mid) => {
-                    const m = getMonster(mid)
-                    return (
-                      <EncounterRow
-                        key={mid}
-                        art={monsterArt(m)}
-                        emoji={m.emoji}
-                        name={m.name}
-                        sub={`通常・HP${m.hp}`}
-                        onClick={() => startEncounter(floor.id, mid)}
-                      />
-                    )
-                  })}
-                  {(() => {
-                    const m = getMonster(floor.midBossId)
-                    return (
-                      <EncounterRow
-                        mid
-                        art={monsterArt(m)}
-                        emoji={m.emoji}
-                        name={m.name}
-                        sub={`中ボス・HP${m.hp}`}
-                        onClick={() => startEncounter(floor.id, floor.midBossId)}
-                      />
-                    )
-                  })()}
-                  <EncounterRow
-                    boss
-                    art={monsterArt(getMonster(floor.bossId))}
-                    emoji={getMonster(floor.bossId).emoji}
-                    name={getMonster(floor.bossId).name}
-                    sub={`${getMonster(floor.bossId).kind === 'last' ? 'ラスボス' : 'フロアボス'}・HP${getMonster(floor.bossId).hp}`}
-                    onClick={() => startEncounter(floor.id, floor.bossId)}
-                  />
-                </Panel>
-              )}
+              {unlocked && open && (() => {
+                // 通常敵をすべて倒す → 中ボス → フロアボス の順に解放する
+                const defeated = player.defeatedMonsters
+                const normalsDone = floor.enemyIds.every((id) => defeated.includes(id))
+                const midDone = defeated.includes(floor.midBossId)
+                const boss = getMonster(floor.bossId)
+                return (
+                  <Panel className="stack--sm fade-in" style={{ marginTop: 8 }}>
+                    <p style={{ fontSize: '0.9rem', margin: 0 }}>{floor.story}</p>
+                    <div className="divider" />
+                    {floor.enemyIds.map((mid) => {
+                      const m = getMonster(mid)
+                      return (
+                        <EncounterRow
+                          key={mid}
+                          art={monsterArt(m)}
+                          emoji={m.emoji}
+                          name={m.name}
+                          sub={`通常・HP${m.hp}`}
+                          done={defeated.includes(mid)}
+                          onClick={() => startEncounter(floor.id, mid)}
+                        />
+                      )
+                    })}
+                    {(() => {
+                      const m = getMonster(floor.midBossId)
+                      return (
+                        <EncounterRow
+                          mid
+                          art={monsterArt(m)}
+                          emoji={m.emoji}
+                          name={m.name}
+                          sub={`中ボス・HP${m.hp}`}
+                          done={midDone}
+                          locked={!normalsDone}
+                          lockHint="通常の困りごとをすべて解決すると出現"
+                          onClick={() => startEncounter(floor.id, floor.midBossId)}
+                        />
+                      )
+                    })()}
+                    <EncounterRow
+                      boss
+                      art={monsterArt(boss)}
+                      emoji={boss.emoji}
+                      name={boss.name}
+                      sub={`${boss.kind === 'last' ? 'ラスボス' : 'フロアボス'}・HP${boss.hp}`}
+                      done={defeated.includes(floor.bossId)}
+                      locked={!midDone}
+                      lockHint="中ボスを倒すと挑戦できる"
+                      onClick={() => startEncounter(floor.id, floor.bossId)}
+                    />
+                  </Panel>
+                )
+              })()}
             </div>
           )
         })}
@@ -111,6 +125,9 @@ function EncounterRow({
   onClick,
   mid,
   boss,
+  done,
+  locked,
+  lockHint,
 }: {
   art: string
   emoji: string
@@ -119,6 +136,9 @@ function EncounterRow({
   onClick: () => void
   mid?: boolean
   boss?: boolean
+  done?: boolean
+  locked?: boolean
+  lockHint?: string
 }) {
   return (
     <div
@@ -126,26 +146,40 @@ function EncounterRow({
       style={{
         padding: '8px 10px',
         borderRadius: 12,
-        background: boss ? '#fff4e0' : mid ? '#f3edff' : '#f4f7fb',
-        border: boss
-          ? '2px solid var(--gold)'
-          : mid
-            ? '2px solid #a78bfa'
-            : '1px solid #e2e8f0',
+        background: locked ? '#eceff3' : boss ? '#fff4e0' : mid ? '#f3edff' : '#f4f7fb',
+        border: locked
+          ? '1px solid #d6dee8'
+          : boss
+            ? '2px solid var(--gold)'
+            : mid
+              ? '2px solid #a78bfa'
+              : '1px solid #e2e8f0',
+        opacity: locked ? 0.75 : 1,
       }}
     >
-      <Sprite src={art} alt={name} size={boss ? 56 : mid ? 50 : 44} fallback={emoji} />
+      {locked ? (
+        <div style={{ fontSize: 30, width: boss ? 56 : mid ? 50 : 44, textAlign: 'center' }}>🔒</div>
+      ) : (
+        <Sprite src={art} alt={name} size={boss ? 56 : mid ? 50 : 44} fallback={emoji} />
+      )}
       <div className="grow">
         <div className="row wrap" style={{ gap: 6, fontWeight: 800 }}>
-          {name}
+          {locked ? '？？？' : name}
+          {done && <span className="badge" style={{ background: 'var(--good)' }}>✓ 撃破</span>}
           {boss && <span className="badge" style={{ background: 'var(--gold-deep)' }}>BOSS</span>}
           {mid && <span className="badge" style={{ background: '#7c5cd6' }}>中ボス</span>}
         </div>
-        <div className="muted">{sub}</div>
+        <div className="muted">{locked ? lockHint : sub}</div>
       </div>
-      <Button variant={boss ? 'gold' : mid ? 'danger' : 'primary'} onClick={onClick}>
-        挑戦
-      </Button>
+      {locked ? (
+        <Button variant="secondary" disabled>
+          ロック
+        </Button>
+      ) : (
+        <Button variant={boss ? 'gold' : mid ? 'danger' : 'primary'} onClick={onClick}>
+          {done ? '再挑戦' : '挑戦'}
+        </Button>
+      )}
     </div>
   )
 }

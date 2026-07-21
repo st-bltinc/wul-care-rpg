@@ -65,6 +65,19 @@ const buildQuizPool = (floorId: string): Quiz[] => {
   return shuffle(pool)
 }
 
+/**
+ * 出題ごとに選択肢をシャッフルして正解の位置を散らす。
+ * 元データは正解が先頭に固まっているので、表示のたびにランダム化する。
+ */
+const shuffleQuiz = (q: Quiz): Quiz => {
+  const order = shuffle(q.choices.map((_, i) => i))
+  return {
+    ...q,
+    choices: order.map((i) => q.choices[i]),
+    answer: order.indexOf(q.answer),
+  }
+}
+
 export function BattleScreen() {
   const s = useGameStore
   const floorId = useGameStore((st) => st.selectedFloorId)
@@ -82,6 +95,8 @@ export function BattleScreen() {
 
   const pool = useMemo(() => (floorId ? buildQuizPool(floorId) : []), [floorId])
   const [quizIdx, setQuizIdx] = useState(0)
+  // 表示中のクイズ（選択肢をシャッフル済み）。出題のたびに作り直す。
+  const [displayQuiz, setDisplayQuiz] = useState<Quiz | null>(null)
 
   const [chosen, setChosen] = useState<number | null>(null)
   const [lastCorrect, setLastCorrect] = useState(false)
@@ -108,10 +123,19 @@ export function BattleScreen() {
 
   const equipped = getWeapon(s.getState().player.equippedWeaponId)
   const fx = equipped?.fx ?? FIST_FX
-  const currentQuiz = pool.length ? pool[quizIdx % pool.length] : null
+
+  /** 指定インデックスの問題を、選択肢シャッフルして出題する */
+  const goToQuiz = (idx: number) => {
+    const q = pool.length ? pool[idx % pool.length] : null
+    setDisplayQuiz(q ? shuffleQuiz(q) : null)
+    setQuizIdx(idx)
+    setChosen(null)
+    setPhase('quiz')
+  }
 
   // ---- クイズ回答（正解で攻撃 / 不正解で被弾） ----
   const answer = (idx: number) => {
+    const currentQuiz = displayQuiz
     if (!currentQuiz || chosen !== null) return
     setChosen(idx)
     const correct = idx === currentQuiz.answer
@@ -149,8 +173,7 @@ export function BattleScreen() {
       sfxDefeat()
       setPhase('defeat')
     } else {
-      setQuizIdx((i) => i + 1)
-      setPhase('quiz')
+      goToQuiz(quizIdx + 1)
     }
   }
 
@@ -314,20 +337,20 @@ export function BattleScreen() {
               ※威力は正解で決まります。武器は攻撃の演出が変わります。
             </div>
           </div>
-          <Button variant="danger" lg block onClick={() => setPhase('quiz')}>
+          <Button variant="danger" lg block onClick={() => goToQuiz(0)}>
             たたかう
           </Button>
         </Panel>
       )}
 
-      {phase === 'quiz' && currentQuiz && (
-        <QuizBlock quiz={currentQuiz} chosen={chosen} onAnswer={answer} />
+      {phase === 'quiz' && displayQuiz && (
+        <QuizBlock quiz={displayQuiz} chosen={chosen} onAnswer={answer} />
       )}
 
-      {phase === 'feedback' && currentQuiz && (
+      {phase === 'feedback' && displayQuiz && (
         <FeedbackBlock
           correct={lastCorrect}
-          quiz={currentQuiz}
+          quiz={displayQuiz}
           extra={
             lastCorrect
               ? `${fx.moveName}！ ${monster.name}に ${lastDamage?.v} のダメージ${lastDamage?.special ? '（特効）' : ''}`
