@@ -16,8 +16,9 @@ export function TitleScreen() {
       className="screen title-screen"
       style={{
         alignItems: 'stretch',
-        // 主人公が潰れないよう、暗くするのは下半分だけにする
-        backgroundImage: `linear-gradient(180deg, rgba(14,21,38,0) 42%, rgba(14,21,38,.55) 62%, rgba(14,21,38,.92) 80%, #0e1526), url(${TITLE_ART})`,
+        // 下半分をほどよく暗くしてボタンを読みやすく。ただし最下部は完全な黒にせず、
+        // 足元の景色がうっすら残るようにして「黒い空白」に見えないようにする。
+        backgroundImage: `linear-gradient(180deg, rgba(14,21,38,0) 40%, rgba(14,21,38,.45) 60%, rgba(14,21,38,.8) 82%, rgba(14,21,38,.9) 100%), url(${TITLE_ART})`,
         gap: 16,
       }}
     >
@@ -69,11 +70,6 @@ export function TitleScreen() {
           </Button>
         </Panel>
       )}
-
-      <p className="muted center" style={{ color: '#8b98ad', marginTop: 8 }}>
-        敵は「介護現場の困りごと」。<br />
-        利用者さんは、あなたが守る大切な存在です。
-      </p>
     </div>
   )
 }
