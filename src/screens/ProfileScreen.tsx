@@ -162,6 +162,16 @@ export function ProfileScreen() {
         </div>
       </Panel>
 
+      {/* タイトルへ戻る（進捗は保持したまま） */}
+      <Panel className="stack--sm">
+        <Button variant="secondary" block onClick={() => navigate('title')}>
+          🏠 タイトルへ戻る
+        </Button>
+        <div className="muted">
+          進捗は自動で保存されます。タイトルの「つづきから」でいつでも再開できます。
+        </div>
+      </Panel>
+
       {/* リセット */}
       <Panel className="stack--sm">
         {!confirmReset ? (

@@ -7,8 +7,10 @@ import { MONSTERS } from '@/data/monsters'
 
 // 出現スロット（位置・大きさ・タイミングは global.css の .tmon--* で定義）。
 const TITLE_SLOTS = ['tmon--1', 'tmon--2', 'tmon--3', 'tmon--4', 'tmon--5', 'tmon--6']
-// 全モンスターの絵柄プール（重複除去）。
-const MONSTER_POOL = Array.from(new Set(MONSTERS.map((m) => m.art)))
+// 画像PNGが未生成の art（生成できたらこの除外は不要）。プールから外して「？」表示を防ぐ。
+const MISSING_ART = new Set(['mid_forgetnote', 'mid_typo', 'mid_lag', 'mid_lost'])
+// 全モンスターの絵柄プール（重複除去＋画像があるものだけ）。
+const MONSTER_POOL = Array.from(new Set(MONSTERS.map((m) => m.art))).filter((a) => !MISSING_ART.has(a))
 
 // タイトルを開くたびにプールからシャッフルして各スロットへ割り当てる（毎回ランダムな顔ぶれ）。
 function pickTitleMonsters() {
@@ -26,6 +28,7 @@ export function TitleScreen() {
   const hasSave = useGameStore((s) => s.player.name.trim().length > 0)
   const [entering, setEntering] = useState(false)
   const [name, setName] = useState('')
+  const [confirmNew, setConfirmNew] = useState(false)
   // マウント時に一度だけ抽選 → タイトルを開くたび/リロードごとに顔ぶれが変わる。
   const [monsters] = useState(pickTitleMonsters)
 
@@ -45,7 +48,15 @@ export function TitleScreen() {
       <div className="title-monsters" aria-hidden="true">
         {monsters.map((m) => (
           <span key={m.cls} className={`tmon ${m.cls}`}>
-            <img className="tmon__img" src={monsterArtById(m.art)} alt="" />
+            <img
+              className="tmon__img"
+              src={monsterArtById(m.art)}
+              alt=""
+              // 読み込み失敗時は「？」を出さずに消す（保険）
+              onError={(e) => {
+                e.currentTarget.style.display = 'none'
+              }}
+            />
           </span>
         ))}
       </div>
@@ -67,12 +78,42 @@ export function TitleScreen() {
 
       {!entering ? (
         <div className="stack title-actions">
-          <Button variant="gold" lg block onClick={() => setEntering(true)}>
-            はじめる
-          </Button>
-          {hasSave && (
-            <Button variant="ghost" block onClick={() => navigate('home')}>
-              つづきから
+          {hasSave ? (
+            <>
+              {/* セーブがあるときは「つづきから」を主役に。データは自動保存されている。 */}
+              <Button variant="gold" lg block onClick={() => navigate('home')}>
+                つづきから
+              </Button>
+              {!confirmNew ? (
+                <Button variant="ghost" block onClick={() => setConfirmNew(true)}>
+                  はじめから
+                </Button>
+              ) : (
+                <Panel className="fade-in stack--sm">
+                  <div className="center" style={{ fontWeight: 800 }}>
+                    いまの進捗を消して、新しく始めますか？
+                  </div>
+                  <div className="row">
+                    <Button variant="secondary" block onClick={() => setConfirmNew(false)}>
+                      やめる
+                    </Button>
+                    <Button
+                      variant="danger"
+                      block
+                      onClick={() => {
+                        setConfirmNew(false)
+                        setEntering(true)
+                      }}
+                    >
+                      新しく始める
+                    </Button>
+                  </div>
+                </Panel>
+              )}
+            </>
+          ) : (
+            <Button variant="gold" lg block onClick={() => setEntering(true)}>
+              はじめる
             </Button>
           )}
         </div>
