@@ -8,3 +8,4 @@ dist-ssr
 !.env.example
 dev-dist
 .assets-raw
+scratchpad/
