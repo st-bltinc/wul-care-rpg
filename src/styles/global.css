@@ -586,10 +586,150 @@ button {
 
 /* ---- タイトル画面 ---- */
 .title-screen {
+  position: relative;
   background-color: #0e1526;
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
+}
+/* ロゴ・ボタンなどのUIは常にモンスター演出より前面に */
+.title-screen > :not(.title-monsters) {
+  position: relative;
+  z-index: 1;
+}
+
+/* 困りごとモンスターの出現演出レイヤー（背景の上・UIの下） */
+.title-monsters {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.tmon {
+  position: absolute;
+  animation: monEnter 0.85s cubic-bezier(0.2, 1.3, 0.35, 1) both;
+}
+.tmon__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.4));
+  animation: monFloat 3.6s ease-in-out infinite;
+}
+/* 下（または端）からポンッと出現 */
+@keyframes monEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(64px) scale(0.55);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+/* 出現後はゆっくり上下＋首かしげでふわふわ（AとBで傾きを逆にして自然な散らばりに） */
+@keyframes monFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-9px) rotate(3deg);
+  }
+}
+@keyframes monFloatB {
+  0%,
+  100% {
+    transform: translateY(-2px) rotate(4deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(-2deg);
+  }
+}
+/* 各モンスターの位置・大きさ・タイミング。
+   左右非対称・高さバラバラ・サイズ差ありで自然に散らす。
+   下段はボタンに被らないよう bottom を 26% 以上に確保（ボタンは最下部）。 */
+.tmon--1 {
+  left: 5%;
+  top: 24%;
+  width: 18%;
+  animation-delay: 0.5s;
+}
+.tmon--1 .tmon__img {
+  animation-duration: 3.7s;
+  animation-delay: 1.35s;
+}
+.tmon--2 {
+  left: 79%;
+  top: 31%;
+  width: 16%;
+  animation-delay: 0.7s;
+}
+.tmon--2 .tmon__img {
+  animation-name: monFloatB;
+  animation-duration: 3.3s;
+  animation-delay: 1.55s;
+}
+.tmon--3 {
+  left: 8%;
+  top: 45%;
+  width: 19%;
+  animation-delay: 0.9s;
+}
+.tmon--3 .tmon__img {
+  animation-duration: 4.1s;
+  animation-delay: 1.75s;
+}
+.tmon--4 {
+  left: 78%;
+  top: 46%;
+  width: 17%;
+  animation-delay: 1.1s;
+}
+.tmon--4 .tmon__img {
+  animation-name: monFloatB;
+  animation-duration: 3.5s;
+  animation-delay: 1.95s;
+}
+.tmon--5 {
+  left: 4%;
+  bottom: 26%;
+  width: 14%;
+  animation-delay: 1.2s;
+}
+.tmon--5 .tmon__img {
+  animation-duration: 3s;
+  animation-delay: 2.05s;
+}
+.tmon--6 {
+  left: 76%;
+  bottom: 27%;
+  width: 15%;
+  animation-delay: 1.4s;
+}
+.tmon--6 .tmon__img {
+  animation-name: monFloatB;
+  animation-duration: 3.9s;
+  animation-delay: 2.25s;
+}
+/* 「はじめる」ボタン群はロゴの後にふわっと */
+.title-actions {
+  animation: fadeIn 0.45s ease 0.5s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tmon,
+  .tmon__img,
+  .title-actions {
+    animation: none;
+  }
+  .tmon {
+    opacity: 1;
+  }
 }
 /* 上部の可変スペーサー。広い画面では伸びて主人公を見せ、
    狭い画面では 0 まで縮んでロゴ・ボタンが重ならず収まる。 */

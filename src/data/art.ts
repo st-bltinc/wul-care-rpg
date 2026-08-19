@@ -13,6 +13,8 @@ export const HERO_ART = url('characters/hero.png')
 export const TITLE_ART = url('misc/title.webp')
 
 export const monsterArt = (m: Monster) => url(`monsters/${m.art}.png`)
+/** art id（haze / pill など）から直接モンスター画像URLを得る（タイトル演出などで使用） */
+export const monsterArtById = (art: string) => url(`monsters/${art}.png`)
 export const weaponArt = (w: Weapon) => url(`weapons/${w.id}.png`)
 export const charmArt = (c: Charm) => url(`charms/${c.id}.png`)
 export const floorArt = (f: Floor) => url(`floors/${f.id}.webp`)
